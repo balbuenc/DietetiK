@@ -15,10 +15,13 @@ namespace DietetiK
         {
             if (Request.QueryString["venta"] != null)
             {
-               ddlClientes.SelectedValue =  ObtenerClientID(Convert.ToInt32 (Request.QueryString["venta"])).ToString();
+                ddlClientes.SelectedValue = ObtenerClientID(Convert.ToInt32(Request.QueryString["venta"])).ToString();
+
+                //if (IsPostBack)
+                ObtenerTotal();
+
             }
 
-            ObtenerTotal();
 
             txtCodigoProducto.Focus();
 
@@ -26,11 +29,11 @@ namespace DietetiK
         }
 
         protected void ObtenerTotal()
-        { 
+        {
             SqlConnection sqlConnection1 = new SqlConnection(SaleDetailsDataSource.ConnectionString);
             SqlCommand cmd = new SqlCommand();
-            int retval = 0;
-           
+            decimal retval = 0;
+
             try
             {
                 cmd.CommandText = "sp_get_sale_total";
@@ -42,6 +45,20 @@ namespace DietetiK
                 outParam.ParameterName = "@total";
                 outParam.Direction = System.Data.ParameterDirection.Output;
 
+                SqlParameter total_usd = new SqlParameter();
+                total_usd.SqlDbType = System.Data.SqlDbType.Decimal;
+                total_usd.Precision = 18;
+                total_usd.Scale = 2;
+                total_usd.ParameterName = "@total_usd";
+                total_usd.Direction = System.Data.ParameterDirection.Output;
+
+                SqlParameter total_brl = new SqlParameter();
+                total_brl.SqlDbType = System.Data.SqlDbType.Decimal;
+                total_brl.Precision = 18;
+                total_brl.Scale = 2;
+                total_brl.ParameterName = "@total_brl";
+                total_brl.Direction = System.Data.ParameterDirection.Output;
+
                 if (Request.QueryString["venta"] != null)
                 {
                     cmd.Parameters.AddWithValue("@id_venta", Request.QueryString["venta"]);
@@ -51,15 +68,22 @@ namespace DietetiK
                     cmd.Parameters.AddWithValue("@id_venta", DBNull.Value);
                 }
 
-                
+
                 cmd.Parameters.Add(outParam);
+                cmd.Parameters.Add(total_usd);
+                cmd.Parameters.Add(total_brl);
 
                 sqlConnection1.Open();
                 cmd.ExecuteNonQuery();
 
                 retval = Convert.ToInt32(cmd.Parameters["@total"].Value);
-
                 TotalPYG.Text = retval.ToString();
+
+                retval = Convert.ToDecimal(cmd.Parameters["@total_usd"].Value);
+                TotalUSD.Text = retval.ToString();
+
+                retval = Convert.ToDecimal(cmd.Parameters["@total_brl"].Value);
+                TotalBRL.Text = retval.ToString();
 
                 sqlConnection1.Close();
 
@@ -140,7 +164,7 @@ namespace DietetiK
                 sqlConnection1.Open();
                 cmd.ExecuteNonQuery();
 
-                retval = Convert.ToInt32( cmd.Parameters["@id_cliente"].Value);
+                retval = Convert.ToInt32(cmd.Parameters["@id_cliente"].Value);
 
                 sqlConnection1.Close();
 
@@ -217,9 +241,9 @@ namespace DietetiK
         protected void ddlProductos_SelectedIndexChanged(object sender, EventArgs e)
         {
             txtCodigoProducto.Text = "";
-            txtCodigoProducto.Text = ObtenerCodigoProducto( Convert.ToInt32( ddlProductos.SelectedValue));
+            txtCodigoProducto.Text = ObtenerCodigoProducto(Convert.ToInt32(ddlProductos.SelectedValue));
         }
 
-      
+
     }
 }
