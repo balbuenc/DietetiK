@@ -17,6 +17,7 @@ namespace DietetiK
             {
                 ddlClientes.SelectedValue = ObtenerClientID(Convert.ToInt32(Request.QueryString["venta"])).ToString();
 
+
                 //if (IsPostBack)
                 ObtenerTotal();
 
